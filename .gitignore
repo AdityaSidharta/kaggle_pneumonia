@@ -70,7 +70,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+.    print(loss_label, loss_bb)_checkpoints
 
 # pyenv
 .python-version
@@ -102,3 +102,20 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+.idea/kaggle_pneumonia.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/workspace.xml
+
+# project_files
+/data_source/stage_1_detailed_class_info.csv
+/data_source/stage_1_sample_submission.csv
+/data_source/stage_1_train_labels.csv
+/data_source/train_dcm/
+/data_source/test_dcm/
+!/data_source/test_dcm/placeholder
+!/data_source/train_dcm/placeholder
+/CheXNet/
+/.ipynb_checkpoints/
+
+/data_source/.ipynb_checkpoints/

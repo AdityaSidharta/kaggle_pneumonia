@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+kaggle = "*"
+torch = "==0.4.1"
+jupyterlab = "*"
+pandas = "*"
+numpy = "*"
+pydicom = "*"
+pillow = "*"
+scikit-image = "*"
+sklearn = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"

@@ -1,0 +1,3 @@
+[submodule "CheXNet"]
+	path = CheXNet
+	url = git@github.com:arnoweng/CheXNet.git
