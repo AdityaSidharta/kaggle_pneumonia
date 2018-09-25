@@ -2,7 +2,7 @@ import pandas as pd
 import pydicom
 from PIL import Image
 
-from envs import *
+from utils.envs import *
 
 
 def save_image_from_dc(dcm_path):
