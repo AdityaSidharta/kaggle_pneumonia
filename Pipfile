@@ -13,6 +13,7 @@ pydicom = "*"
 pillow = "*"
 scikit-image = "*"
 sklearn = "*"
+seaborn = "*"
 
 [dev-packages]
 

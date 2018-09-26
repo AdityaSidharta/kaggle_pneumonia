@@ -1,6 +1,63 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
+import seaborn as sns
+
+from model.callback import CallBacks
+
+
+class LossRecorder(CallBacks):
+    def __init__(self, n_epoch, n_batch_per_epoch, loss_momentum=0.8):
+        self.train_loss = []
+        self.smooth_train_loss = []
+        self.epoch_train_loss = []
+
+        self.val_loss = []
+
+        self.smooth_loss = 0
+        self.n_epoch = n_epoch
+        self.n_batch_per_epoch = n_batch_per_epoch
+        self.loss_momentum = loss_momentum
+
+    def calc_loss(self, cur_loss, new_loss):
+        n_loss = len(self.train_loss)
+        mom_loss = self.loss_momentum * cur_loss + (1 - self.loss_momentum) * new_loss
+        smooth_loss = mom_loss / float(1 - self.loss_momentum ** n_loss)
+        return smooth_loss
+
+    def record_train_loss(self, new_loss, return_loss=True):
+        self.train_loss.append(new_loss)
+        self.smooth_loss = self.calc_loss(self.smooth_loss, new_loss)
+        self.smooth_train_loss.append(self.smooth_loss)
+        if return_loss:
+            return self.smooth_loss
+
+    def record_val_loss(self, new_loss):
+        self.val_loss.append(new_loss)
+
+    def plot_batch_loss(self, smooth=False):
+        n_batches = len(self.train_loss)
+        if smooth:
+            sns.lineplot(x=range(n_batches), y=self.smooth_train_loss)
+        else:
+            sns.lineplot(x=range(n_batches), y=self.train_loss)
+
+    def plot_epoch_loss(self, val=False):
+        n_epoch = len(self.epoch_train_loss)
+        if val:
+            sns.lineplot(x=range(n_epoch), y=self.epoch_train_loss)
+            sns.lineplot(x=range(n_epoch), y=self.val_loss)
+        else:
+            sns.lineplot(x=range(n_epoch), y=self.epoch_train_loss)
+
+    def on_batch_end(self, batch_idx):
+        assert len(self.train_loss) == batch_idx + 1, "Don't forget to record loss"
+        assert len(self.smooth_train_loss) == batch_idx + 1
+
+    def on_epoch_end(self, epoch_idx):
+        epoch_mean = np.mean(self.train_loss[-self.n_batch_per_epoch :])
+        self.epoch_train_loss.append(epoch_mean)
+        assert len(self.epoch_train_loss) == epoch_idx + 1
 
 
 class BoundBoxCriterion(nn.Module):
@@ -17,80 +74,3 @@ class BoundBoxCriterion(nn.Module):
         loss_bb = F.smooth_l1_loss(F.sigmoid(pos_pred_bb), pos_target_bb)
         loss_total = loss_label + (self.alpha * loss_bb)
         return loss_total, loss_label, loss_bb
-
-
-def train(optimizer, loss):
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-
-def intersect(box_a, box_b):
-    """ We resize both tensors to [A,B,2] without new malloc:
-    [A,2] -> [A,1,2] -> [A,B,2]
-    [B,2] -> [1,B,2] -> [A,B,2]
-    Then we compute the area of intersect between box_a and box_b.
-    Args:
-      box_a: (tensor) bounding boxes, Shape: [A,4].
-      box_b: (tensor) bounding boxes, Shape: [B,4].
-    Return:
-      (tensor) intersection area, Shape: [A,B].
-    """
-    A = box_a.size(0)
-    B = box_b.size(0)
-    max_xy = torch.min(
-        box_a[:, 2:].unsqueeze(1).expand(A, B, 2),
-        box_b[:, 2:].unsqueeze(0).expand(A, B, 2),
-    )
-    min_xy = torch.max(
-        box_a[:, :2].unsqueeze(1).expand(A, B, 2),
-        box_b[:, :2].unsqueeze(0).expand(A, B, 2),
-    )
-    inter = torch.clamp((max_xy - min_xy), min=0)
-    return inter[:, :, 0] * inter[:, :, 1]
-
-
-def jaccard(box_a, box_b):
-    """Compute the jaccard overlap of two sets of boxes.  The jaccard overlap
-    is simply the intersection over union of two boxes.  Here we operate on
-    ground truth boxes and default boxes.
-    E.g.:
-        A ∩ B / A ∪ B = A ∩ B / (area(A) + area(B) - A ∩ B)
-    Args:
-        box_a: (tensor) Ground truth bounding boxes, Shape: [num_objects,4]
-        box_b: (tensor) Prior boxes from priorbox layers, Shape: [num_priors,4]
-    Return:
-        jaccard overlap: (tensor) Shape: [box_a.size(0), box_b.size(0)]
-    """
-    inter = intersect(box_a, box_b)
-    area_a = (
-        ((box_a[:, 2] - box_a[:, 0]) * (box_a[:, 3] - box_a[:, 1]))
-        .unsqueeze(1)
-        .expand_as(inter)
-    )  # [A,B]
-    area_b = (
-        ((box_b[:, 2] - box_b[:, 0]) * (box_b[:, 3] - box_b[:, 1]))
-        .unsqueeze(0)
-        .expand_as(inter)
-    )  # [A,B]
-    union = area_a + area_b - inter
-    return inter / union  # [A,B]
-
-
-def class_metric(pred_label, target_label):
-    TP = torch.sum((pred_label >= 0.5) & (target_label == 1.))
-    FP = torch.sum((pred_label >= 0.5) & (target_label == 0.))
-    TN = torch.sum((pred_label < 0.5) & (target_label == 0.))
-    FN = torch.sum((pred_label < 0.5) & (target_label == 1.))
-    acc = (TP + TN) / (TP + FP + TN + FN)
-    prec = (TP) / (TP + FP)
-    rec = (TP) / (TP + FN)
-    return acc, prec, rec
-
-
-# TODO IoU
-def IoU(pred_bb, target_bb):
-    pred_bb[:2] = pred_bb[:1] + pred_bb[:2]
-    pred_bb[:3] = pred_bb[:0] + pred_bb[:3]
-    target_bb[:2] = target_bb[:1] + target_bb[:2]
-    target_bb[:3] = target_bb[:0] + target_bb[:3]
