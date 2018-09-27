@@ -2,8 +2,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import seaborn as sns
-
-from model.callback import CallBacks
+import torch
+from utils.callback import CallBacks
 
 
 class LossRecorder(CallBacks):
@@ -32,8 +32,10 @@ class LossRecorder(CallBacks):
         if return_loss:
             return self.smooth_loss
 
-    def record_val_loss(self, new_loss):
+    def record_val_loss(self, new_loss, return_loss=False):
         self.val_loss.append(new_loss)
+        if return_loss:
+            return new_loss
 
     def plot_batch_loss(self, smooth=False):
         n_batches = len(self.train_loss)
@@ -50,10 +52,6 @@ class LossRecorder(CallBacks):
         else:
             sns.lineplot(x=range(n_epoch), y=self.epoch_train_loss)
 
-    def on_batch_end(self, batch_idx):
-        assert len(self.train_loss) == batch_idx + 1, "Don't forget to record loss"
-        assert len(self.smooth_train_loss) == batch_idx + 1
-
     def on_epoch_end(self, epoch_idx):
         epoch_mean = np.mean(self.train_loss[-self.n_batch_per_epoch :])
         self.epoch_train_loss.append(epoch_mean)
@@ -64,6 +62,7 @@ class BoundBoxCriterion(nn.Module):
     def __init__(self, alpha):
         super().__init__()
         self.alpha = alpha
+        assert (self.alpha >= 0.0) and (self.alpha < 1.0)
 
     def forward(self, pred, target):
         pred_label, target_label = pred[:, 0], target[:, 0]
@@ -71,6 +70,10 @@ class BoundBoxCriterion(nn.Module):
         pos_pred_bb = pred_bb[target_label == 1.]
         pos_target_bb = target_bb[target_label == 1.]
         loss_label = F.binary_cross_entropy_with_logits(pred_label, target_label)
-        loss_bb = F.smooth_l1_loss(F.sigmoid(pos_pred_bb), pos_target_bb)
-        loss_total = loss_label + (self.alpha * loss_bb)
-        return loss_total, loss_label, loss_bb
+        if pos_target_bb.shape[0] > 0:
+            loss_bb = F.smooth_l1_loss(F.sigmoid(pos_pred_bb), pos_target_bb)
+            loss_total = (self.alpha * loss_label) + ((1 - self.alpha) * loss_bb)
+        else:
+            loss_bb = torch.zeros(1)
+            loss_total = loss_label
+        return loss_total, loss_label, loss_bb, pos_pred_bb, pred_label, pos_target_bb, target_label
