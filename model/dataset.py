@@ -5,12 +5,11 @@ import pydicom
 import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor, Resize, Compose, ToPILImage, Grayscale
-from utils.transform import img2tensor
 from utils.transform import normalize_bb
 
 
 class Single_Pneumonia_Dataset(Dataset):
-    def __init__(self, single_label_df, dcm_path, device):
+    def __init__(self, single_label_df, dcm_path, device, test=False):
         self.single_label_df = single_label_df
         self.patientId = single_label_df.patientId.values
         self.x = single_label_df.x.values
@@ -23,6 +22,7 @@ class Single_Pneumonia_Dataset(Dataset):
         self.n_obs = len(single_label_df)
         self.device = device
         self.tsfm = Compose([ToPILImage(), Resize(224), Grayscale(3), ToTensor()])
+        self.test = test
 
     def __len__(self):
         return self.n_obs
@@ -44,9 +44,13 @@ class Single_Pneumonia_Dataset(Dataset):
             img_w, img_h, x_min, y_min, width, height
         )
         img_array = np.expand_dims(img_array, -1)
-        return (
-            self.tsfm(img_array).to(self.device),
-            torch.from_numpy(np.array([target, x_min, y_min, height, width]))
-            .float()
-            .to(self.device),
-        )
+        if self.test:
+            return self.tsfm(img_array).to(self.device)
+        else:
+            return (
+                self.tsfm(img_array).to(self.device),
+                torch.from_numpy(np.array([target, x_min, y_min, width, height]))
+                .float()
+                .to(self.device),
+                torch.from_numpy(self.patientId).to(self.device),
+            )

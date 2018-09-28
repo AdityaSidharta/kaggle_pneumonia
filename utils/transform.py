@@ -22,12 +22,20 @@ def denormalize_bb(img_w, img_h, x_min, y_min, width, height):
     return x_min, y_min, width, height
 
 
+def to_imgaugbb(x_min, y_min, width, height):
+    x1 = (x_min,)
+    y1 = y_min
+    x2 = x1 + width
+    y2 = y1 + height
+    return x1, y1, x2, y2
+
+
 def get_series_attributes(series):
     return (
         series.patientId,
         series.x,
         series.y,
-        series.height,
         series.width,
+        series.height,
         series.Target,
     )

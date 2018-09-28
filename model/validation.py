@@ -1,9 +1,6 @@
 import torch
 
 
-# TODO IoU
-
-
 def intersect(box_a, box_b):
     """ We resize both tensors to [A,B,2] without new malloc:
     [A,2] -> [A,1,2] -> [A,B,2]
@@ -65,10 +62,3 @@ def class_metric(pred_label, target_label):
     prec = (TP) / (TP + FP)
     rec = (TP) / (TP + FN)
     return acc, prec, rec
-
-
-def IoU(pred_bb, target_bb):
-    pred_bb[:2] = pred_bb[:1] + pred_bb[:2]
-    pred_bb[:3] = pred_bb[:0] + pred_bb[:3]
-    target_bb[:2] = target_bb[:1] + target_bb[:2]
-    target_bb[:3] = target_bb[:0] + target_bb[:3]

@@ -76,4 +76,4 @@ class BoundBoxCriterion(nn.Module):
         else:
             loss_bb = torch.zeros(1)
             loss_total = loss_label
-        return loss_total, loss_label, loss_bb, pos_pred_bb, pred_label, pos_target_bb, target_label
+        return loss_total, loss_label, loss_bb

@@ -5,9 +5,9 @@ project_path = os.getenv("PROJECT_PATH")
 data_source_path = os.path.join(project_path, "data_source")
 output_path = os.path.join(project_path, "output")
 
-logger_path = os.path.join(output_path, 'logger')
-model_cp_path = os.path.join(output_path, 'model_checkpoint')
-result_path = os.path.join(output_path, 'result')
+logger_path = os.path.join(output_path, "logger")
+model_cp_path = os.path.join(output_path, "model_checkpoint")
+result_path = os.path.join(output_path, "result")
 
 test_images_path = os.path.join(data_source_path, "test_images")
 train_images_path = os.path.join(data_source_path, "train_images")
