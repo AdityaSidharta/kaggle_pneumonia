@@ -4,7 +4,7 @@ import torch
 from utils.envs import model_cp_path
 
 # TODO test this
-def save_checkpoint(idx, model, optimizer, is_best=False, cp_fname="cp", md_fname="md"):
+def save_checkpoint(idx, model, optimizer, is_best=False, cp_fname="cp", md_fname="best"):
     full_cp_fname = "{}_{}_model.pth".format(idx, cp_fname)
     full_cp_optim_fname = "{}_{}_optim.pth".format(idx, cp_fname)
     full_md_fname = "{}_model.pth".format(md_fname)
@@ -21,8 +21,10 @@ def save_checkpoint(idx, model, optimizer, is_best=False, cp_fname="cp", md_fnam
 
 
 def load_cp_model(model, checkpoint_path):
-    model.load_state_dict(checkpoint_path)
+    state_dict = torch.load(checkpoint_path)
+    model.load_state_dict(state_dict)
 
 
 def load_cp_optim(optimizer, checkpoint_path):
-    optimizer.load_state_dict(checkpoint_path)
+    state_dict = torch.load(checkpoint_path)
+    optimizer.load_state_dict(state_dict)

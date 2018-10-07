@@ -52,5 +52,4 @@ class Single_Pneumonia_Dataset(Dataset):
                 torch.from_numpy(np.array([target, x_min, y_min, width, height]))
                 .float()
                 .to(self.device),
-                torch.from_numpy(self.patientId).to(self.device),
             )

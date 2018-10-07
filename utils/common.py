@@ -18,3 +18,12 @@ def get_batch_info(dataloader):
     batch_size = dataloader.batch_size
     n_batch_per_epoch = math.ceil(n_obs / float(batch_size))
     return n_obs, batch_size, n_batch_per_epoch
+
+def split_data(data):
+    img, target = data
+    return img, target
+
+def split_target(target):
+    target_label, target_bb = target[:, 0], target[:, 1:]
+    return target_label, target_bb
+

@@ -1,64 +1,32 @@
-import torch
+import numpy as np
+from tqdm import tqdm_notebook as tqdm
+
+from model.loss import calc_loss
+from utils.common import get_batch_info
 
 
-def intersect(box_a, box_b):
-    """ We resize both tensors to [A,B,2] without new malloc:
-    [A,2] -> [A,1,2] -> [A,B,2]
-    [B,2] -> [1,B,2] -> [A,B,2]
-    Then we compute the area of intersect between box_a and box_b.
-    Args:
-      box_a: (tensor) bounding boxes, Shape: [A,4].
-      box_b: (tensor) bounding boxes, Shape: [B,4].
-    Return:
-      (tensor) intersection area, Shape: [A,B].
-    """
-    A = box_a.size(0)
-    B = box_b.size(0)
-    max_xy = torch.min(
-        box_a[:, 2:].unsqueeze(1).expand(A, B, 2),
-        box_b[:, 2:].unsqueeze(0).expand(A, B, 2),
+def calc_validation_metric(model, criterion, val_dataloader):
+    n_val_obs, val_batch_size, val_batch_per_epoch = get_batch_info(val_dataloader)
+    total_val_loss, total_val_loss_label, total_val_loss_bb = (
+        np.zeros(val_batch_per_epoch),
+        np.zeros(val_batch_per_epoch),
+        np.zeros(val_batch_per_epoch),
     )
-    min_xy = torch.max(
-        box_a[:, :2].unsqueeze(1).expand(A, B, 2),
-        box_b[:, :2].unsqueeze(0).expand(A, B, 2),
-    )
-    inter = torch.clamp((max_xy - min_xy), min=0)
-    return inter[:, :, 0] * inter[:, :, 1]
-
-
-def jaccard(box_a, box_b):
-    """Compute the jaccard overlap of two sets of boxes.  The jaccard overlap
-    is simply the intersection over union of two boxes.  Here we operate on
-    ground truth boxes and default boxes.
-    E.g.:
-        A ∩ B / A ∪ B = A ∩ B / (area(A) + area(B) - A ∩ B)
-    Args:
-        box_a: (tensor) Ground truth bounding boxes, Shape: [num_objects,4]
-        box_b: (tensor) Prior boxes from priorbox layers, Shape: [num_priors,4]
-    Return:
-        jaccard overlap: (tensor) Shape: [box_a.size(0), box_b.size(0)]
-    """
-    inter = intersect(box_a, box_b)
-    area_a = (
-        ((box_a[:, 2] - box_a[:, 0]) * (box_a[:, 3] - box_a[:, 1]))
-        .unsqueeze(1)
-        .expand_as(inter)
-    )  # [A,B]
-    area_b = (
-        ((box_b[:, 2] - box_b[:, 0]) * (box_b[:, 3] - box_b[:, 1]))
-        .unsqueeze(0)
-        .expand_as(inter)
-    )  # [A,B]
-    union = area_a + area_b - inter
-    return inter / union  # [A,B]
-
-
-def class_metric(pred_label, target_label):
-    TP = torch.sum((pred_label >= 0.5) & (target_label == 1.))
-    FP = torch.sum((pred_label >= 0.5) & (target_label == 0.))
-    TN = torch.sum((pred_label < 0.5) & (target_label == 0.))
-    FN = torch.sum((pred_label < 0.5) & (target_label == 1.))
-    acc = (TP + TN) / (TP + FP + TN + FN)
-    prec = (TP) / (TP + FP)
-    rec = (TP) / (TP + FN)
-    return acc, prec, rec
+    model = model.eval()
+    t = tqdm(enumerate(val_dataloader), total=val_batch_per_epoch)
+    for idx, data in t:
+        val_loss, val_loss_label, val_loss_bb = calc_loss(model, criterion, data)
+        val_loss, val_loss_label, val_loss_bb = (
+            val_loss.item(),
+            val_loss_label.item(),
+            val_loss_bb.item(),
+        )
+        total_val_loss[idx], total_val_loss_label[idx], total_val_loss_bb[idx] = (
+            val_loss,
+            val_loss_label,
+            val_loss_bb,
+        )
+        t.set_postfix(
+            {"loss": val_loss, "loss_label": val_loss_label, "loss_bb": val_loss_bb}
+        )
+    return total_val_loss.mean(), total_val_loss_label.mean(), total_val_loss_bb.mean()
