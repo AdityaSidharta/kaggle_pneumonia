@@ -1,6 +1,6 @@
 from tqdm import tqdm_notebook as tqdm
 from model.loss import LossRecorder, calc_loss, record_loss
-from model.validation import calc_validation_metric
+from model.validation import validate_model
 from utils.common import get_batch_info
 
 
@@ -58,7 +58,7 @@ def fit_model(
             for cb in callbacks:
                 cb.on_batch_end(idx_batch)
         if val_dataloader is not None:
-            val_loss, val_loss_label, val_loss_bb = calc_validation_metric(
+            val_loss, val_loss_label, val_loss_bb = validate_model(
                 model, criterion, val_dataloader
             )
             record_loss(lossr_list, [val_loss, val_loss_label, val_loss_bb])

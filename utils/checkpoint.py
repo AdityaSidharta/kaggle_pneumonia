@@ -3,8 +3,10 @@ import os
 import torch
 from utils.envs import model_cp_path
 
-# TODO test this
-def save_checkpoint(idx, model, optimizer, is_best=False, cp_fname="cp", md_fname="best"):
+
+def save_checkpoint(
+    idx, model, optimizer, is_best=False, cp_fname="cp", md_fname="best"
+):
     full_cp_fname = "{}_{}_model.pth".format(idx, cp_fname)
     full_cp_optim_fname = "{}_{}_optim.pth".format(idx, cp_fname)
     full_md_fname = "{}_model.pth".format(md_fname)

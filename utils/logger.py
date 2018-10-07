@@ -21,7 +21,7 @@ def setup_logger(name: str, log_path: str) -> logging.Logger:
     """
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(message)s")
 
     # create console handler and set level to info
@@ -42,3 +42,9 @@ def setup_logger(name: str, log_path: str) -> logging.Logger:
 
 
 logger = setup_logger("__name__", logger_repo)
+
+
+def debug_pred_target(prediction, target):
+    logger.debug("target : {}".format(target[:10, :]))
+    logger.debug("prediction : {}".format(prediction[:10, :]))
+    logger.debug("==========================================")

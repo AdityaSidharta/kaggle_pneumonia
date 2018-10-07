@@ -15,10 +15,10 @@ def normalize_bb(img_w, img_h, x_min, y_min, width, height):
 
 
 def denormalize_bb(img_w, img_h, x_min, y_min, width, height):
-    x_min = float(x_min) * float(img_w)
-    y_min = float(y_min) * float(img_h)
-    width = float(width) * float(img_w)
-    height = float(height) * float(img_h)
+    x_min = x_min * float(img_w)
+    y_min = y_min * float(img_h)
+    width = width * float(img_w)
+    height = height * float(img_h)
     return x_min, y_min, width, height
 
 

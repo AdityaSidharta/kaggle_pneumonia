@@ -20,8 +20,8 @@ def get_dcm_list(path):
     ]
 
 
-def create_single_label_df(train_label_repo):
-    train_label_df = pd.read_csv(train_label_repo)
+def create_single_label_df(train_repo):
+    train_label_df = pd.read_csv(train_repo)
     train_label_df["area"] = train_label_df.width * train_label_df.height
     single_label_df = (
         train_label_df.sort_values("area", ascending=False)

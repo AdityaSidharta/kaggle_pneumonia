@@ -5,6 +5,7 @@ from utils.transform import to_imgaugbb
 
 random_seed = 0
 
+
 # TODO still not good
 def modify_image_train(img, bb):
     img_height, img_width = img.shape[0], img.shape[1]

@@ -34,10 +34,13 @@ def draw_imgaug(pred_idx, pred_df, target_df):
         pred_x_min, pred_y_min, pred_width, pred_height
     )
 
-    bbs = ia.BoundingBoxesOnImage([
-        ia.BoundingBox(x1=tgt_x1, y1=tgt_y1, x2=tgt_x2, y2=tgt_y2),
-        ia.BoundingBox(x1=pred_x1, y1=pred_y1, x2=pred_x2, y2=pred_x2)
-    ], shape=(img_h, img_w))
+    bbs = ia.BoundingBoxesOnImage(
+        [
+            ia.BoundingBox(x1=tgt_x1, y1=tgt_y1, x2=tgt_x2, y2=tgt_y2),
+            ia.BoundingBox(x1=pred_x1, y1=pred_y1, x2=pred_x2, y2=pred_x2),
+        ],
+        shape=(img_h, img_w),
+    )
 
     return bbs.draw_on_image(img_array, thickness=2)
 

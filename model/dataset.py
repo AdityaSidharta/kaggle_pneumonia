@@ -8,8 +8,33 @@ from torchvision.transforms import ToTensor, Resize, Compose, ToPILImage, Graysc
 from utils.transform import normalize_bb
 
 
+class Single_Pneumonia_Dataset_Test(Dataset):
+    def __init__(self, dcm_path, device):
+        self.dcm_path = dcm_path
+        self.patientId = self.get_patientid(dcm_path)
+        self.n_obs = len(self.patientId)
+        self.device = device
+        self.tsfm = Compose([ToPILImage(), Resize(224), Grayscale(3), ToTensor()])
+
+    @staticmethod
+    def get_patientid(dcm_path):
+        return [
+            str(x.split(".")[0]) for x in os.listdir(dcm_path) if x.endswith(".dcm")
+        ]
+
+    def __len__(self):
+        return self.n_obs
+
+    def __getitem__(self, idx):
+        filename = self.patientId[idx]
+        file_path = os.path.join(self.dcm_path, filename + ".dcm")
+        img_array = pydicom.read_file(file_path).pixel_array
+        img_array = np.expand_dims(img_array, -1)
+        return self.tsfm(img_array).to(self.device)
+
+
 class Single_Pneumonia_Dataset(Dataset):
-    def __init__(self, single_label_df, dcm_path, device, test=False):
+    def __init__(self, single_label_df, dcm_path, device):
         self.single_label_df = single_label_df
         self.patientId = single_label_df.patientId.values
         self.x = single_label_df.x.values
@@ -22,7 +47,6 @@ class Single_Pneumonia_Dataset(Dataset):
         self.n_obs = len(single_label_df)
         self.device = device
         self.tsfm = Compose([ToPILImage(), Resize(224), Grayscale(3), ToTensor()])
-        self.test = test
 
     def __len__(self):
         return self.n_obs
@@ -44,12 +68,9 @@ class Single_Pneumonia_Dataset(Dataset):
             img_w, img_h, x_min, y_min, width, height
         )
         img_array = np.expand_dims(img_array, -1)
-        if self.test:
-            return self.tsfm(img_array).to(self.device)
-        else:
-            return (
-                self.tsfm(img_array).to(self.device),
-                torch.from_numpy(np.array([target, x_min, y_min, width, height]))
-                .float()
-                .to(self.device),
-            )
+        return (
+            self.tsfm(img_array).to(self.device),
+            torch.from_numpy(np.array([target, x_min, y_min, width, height]))
+            .float()
+            .to(self.device),
+        )

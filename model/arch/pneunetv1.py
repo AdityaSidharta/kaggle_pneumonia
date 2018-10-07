@@ -3,7 +3,7 @@ from torch import nn as nn
 from model.arch.common import linear_block
 from utils.common import to_list, pairwise
 
-
+# TODO Add sigmoid at the end?
 class PneuNetHeader(nn.Module):
     def __init__(self, input_tensor, output_tensor, n_hidden_list, dropout):
         super().__init__()
