@@ -1,4 +1,5 @@
 import logging
+import torch.nn.functional as F
 
 from utils.envs import logger_repo
 
@@ -46,5 +47,5 @@ logger = setup_logger("__name__", logger_repo)
 
 def debug_pred_target(prediction, target):
     logger.debug("target : {}".format(target[:10, :]))
-    logger.debug("prediction : {}".format(prediction[:10, :]))
+    logger.debug("prediction : {}".format(F.sigmoid(prediction)[:10, :]))
     logger.debug("==========================================")

@@ -2,8 +2,6 @@ import torch
 from torch import nn as nn
 from torch.nn import functional as F
 
-# TODO check the loss function
-
 
 class BoundBoxCriterion(nn.Module):
     def __init__(self, alpha):
@@ -16,6 +14,7 @@ class BoundBoxCriterion(nn.Module):
         pred_bb, target_bb = pred[:, 1:], target[:, 1:]
         pos_pred_bb = pred_bb[target_label == 1.]
         pos_target_bb = target_bb[target_label == 1.]
+
         loss_label = F.binary_cross_entropy_with_logits(pred_label, target_label)
         if pos_target_bb.shape[0] > 0:
             loss_bb = F.smooth_l1_loss(F.sigmoid(pos_pred_bb), pos_target_bb)

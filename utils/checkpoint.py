@@ -3,7 +3,7 @@ import os
 import torch
 from utils.envs import model_cp_path
 
-
+# TODO not sure whether working correctly
 def save_checkpoint(
     idx, model, optimizer, is_best=False, cp_fname="cp", md_fname="best"
 ):
