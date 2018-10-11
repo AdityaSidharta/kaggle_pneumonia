@@ -1,43 +1,9 @@
 from torch import nn as nn
 
-from model.arch.common import linear_block
-from utils.common import to_list, pairwise
-
-# densenet121
-class PneuNetHeader(nn.Module):
-    def __init__(self, input_tensor, output_tensor, n_hidden_list, dropout):
-        super().__init__()
-        self.input_tensor = input_tensor
-        self.output_tensor = output_tensor
-        self.n_hidden_list = to_list(n_hidden_list)
-        self.n_hidden = len(self.n_hidden_list)
-        self.dropout = dropout
-
-        self.layers = []
-        for before_hidden, after_hidden in pairwise(
-            [self.input_tensor] + self.n_hidden_list
-        ):
-            self.layers.append(
-                linear_block(
-                    before_hidden, after_hidden, activation=True, dropout=dropout
-                )
-            )
-        self.layers.append(
-            linear_block(
-                self.n_hidden_list[-1],
-                self.output_tensor,
-                dropout=False,
-                activation=False,
-                batchnorm=False,
-            )
-        )
-        self.model = nn.Sequential(*self.layers)
-
-    def forward(self, x):
-        x = self.model(x)
-        return x
+from utils.common import to_list
 
 
+# densenet
 class PneuNetv1(nn.Module):
     def __init__(self, preload_model, header_model):
         super().__init__()

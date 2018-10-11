@@ -1,6 +1,7 @@
 from torch import nn as nn
 from utils.common import to_list
 
+
 # resnet34
 class PneuNetv2(nn.Module):
     def __init__(self, preload_model, header_model):
