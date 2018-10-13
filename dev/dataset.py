@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor, Resize, Compose, ToPILImage, Grayscale
 from utils.transform import normalize_bb
 
-
+# TODO Use simpler train_images and test_images
 class Label_Dataset_Test(Dataset):
     def __init__(self, dcm_path, device):
         self.dcm_path = dcm_path
