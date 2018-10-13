@@ -37,39 +37,18 @@ class Header(nn.Module):
         x = self.model(x)
         return x
 
-
-# TODO not modular enough
-class DensePneuHead(Header):
+class Res50BBHead(Header):
     def __init__(self, n_hidden_list, dropout):
-        input_tensor = 1024
-        output_tensor = 5
-        super(DensePneuHead, self).__init__(
+        input_tensor = 2048
+        output_tensor = 4
+        super(Res50BBHead, self).__init__(
             input_tensor, output_tensor, n_hidden_list, dropout
         )
 
-
-class ResPneuHead(Header):
-    def __init__(self, n_hidden_list, dropout):
-        input_tensor = 512
-        output_tensor = 5
-        super(ResPneuHead, self).__init__(
-            input_tensor, output_tensor, n_hidden_list, dropout
-        )
-
-
-class DenseClassHead(Header):
-    def __init__(self, n_hidden_list, dropout):
-        input_tensor = 1024
-        output_tensor = 1
-        super(DenseClassHead, self).__init__(
-            input_tensor, output_tensor, n_hidden_list, dropout
-        )
-
-
-class ResClassHead(Header):
+class Res50ClassHead(Header):
     def __init__(self, n_hidden_list, dropout):
         input_tensor = 2048
         output_tensor = 1
-        super(ResClassHead, self).__init__(
+        super(Res50ClassHead, self).__init__(
             input_tensor, output_tensor, n_hidden_list, dropout
         )
