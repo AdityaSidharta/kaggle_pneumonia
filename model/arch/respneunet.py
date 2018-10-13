@@ -1,10 +1,9 @@
 from torch import nn as nn
-
 from utils.common import to_list
 
 
-# densenet
-class PneuNetv1(nn.Module):
+# resnet34
+class ResPneuNet(nn.Module):
     def __init__(self, preload_model, header_model):
         super().__init__()
         self.preload_model = preload_model
@@ -14,7 +13,6 @@ class PneuNetv1(nn.Module):
         self.preload_backbone_output_tensor = self.preload_header[0].in_features
 
         self.backbone = self.preload_backbone
-        self.freeze(self.backbone)
         self.pooling = nn.AdaptiveAvgPool2d(1)
         self.header = header_model
 
@@ -25,7 +23,13 @@ class PneuNetv1(nn.Module):
 
     @staticmethod
     def dissect_model(model):
-        return [nn.Sequential(*to_list(x)) for x in list(model.children())]
+        model_list = [nn.Sequential(*to_list(x)) for x in list(model.children())]
+        if len(model_list) == 1:
+            raise ValueError("preload model not suitable")
+        elif len(model_list) == 2:
+            return model_list[0], model_list[1]
+        else:
+            return nn.Sequential(*model_list[:-1]), model_list[-1]
 
     @staticmethod
     def freeze(model):
@@ -47,7 +51,6 @@ class PneuNetv1(nn.Module):
 
     def forward(self, x):
         bs = x.shape[0]
-        x = self.preload_backbone(x)
-        x = self.pooling(x).view(bs, -1)
+        x = self.preload_backbone(x).view(bs, -1)
         x = self.header(x)
         return x

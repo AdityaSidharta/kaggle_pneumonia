@@ -5,7 +5,18 @@ from model.loss import calc_loss
 from utils.common import get_batch_info
 
 
-def validate_model(model, criterion, val_dataloader):
+def validate_model(model, metric_fn, val_dataloader):
+    n_val_obs, val_batch_size, val_batch_per_epoch = get_batch_info(val_dataloader)
+    total_loss = np.zeros(val_batch_per_epoch)
+    model = model.eval()
+    t = tqdm(enumerate(val_dataloader), total=val_batch_per_epoch)
+    for idx, data in t:
+        loss = metric_fn(model, data)
+        total_loss[idx] = loss
+    return total_loss.mean()
+
+
+def validate_model_full(model, criterion, val_dataloader):
     n_val_obs, val_batch_size, val_batch_per_epoch = get_batch_info(val_dataloader)
     total_val_loss, total_val_loss_label, total_val_loss_bb = (
         np.zeros(val_batch_per_epoch),

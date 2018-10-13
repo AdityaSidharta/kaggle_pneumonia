@@ -4,7 +4,7 @@ import seaborn as sns
 from torch import optim as optim
 
 from model.optim import LR_Finder
-from model.train import fit_model
+from model.train import fit_model_full
 from utils.common import get_batch_info
 
 
@@ -18,7 +18,7 @@ def lr_find(model, dataloader, criterion, min_lr=1e-8, max_lr=10.):
     n_epoch = 1
     n_obs, batch_size, batch_per_epoch = get_batch_info(dataloader)
     lr_finder = LR_Finder(optimizer, n_epoch, batch_per_epoch, min_lr, max_lr)
-    model, callbacks = fit_model(
+    model, callbacks = fit_model_full(
         model=clone_model,
         n_epoch=n_epoch,
         dev_dataloader=dataloader,

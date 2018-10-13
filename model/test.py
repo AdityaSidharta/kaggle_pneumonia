@@ -5,7 +5,18 @@ from utils.transform import denormalize_bb, get_series_attributes
 import pandas as pd
 
 
-def predict_model(model, test_dataloader):
+def predict_model(model, test_dataloader, pred_fn):
+    n_obs, batch_size, batch_size_per_epoch = get_batch_info(test_dataloader)
+    prediction_list = []
+    model = model.eval()
+    t = tqdm(enumerate(test_dataloader), total=batch_size_per_epoch)
+    for idx, data in t:
+        prediction = pred_fn(model, data)
+        prediction_list.extend(prediction)
+    return prediction_list
+
+
+def predict_model_full(model, test_dataloader):
     n_obs, batch_size, batch_size_per_epoch = get_batch_info(test_dataloader)
     target_list, x_min_list, y_min_list, width_list, height_list = ([], [], [], [], [])
     model = model.eval()

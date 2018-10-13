@@ -126,3 +126,6 @@ venv.bak/
 !/output/logger/placeholder
 !/output/model_checkpoint/placeholder
 !/output/result/placeholder
+/data_source/test_images/
+/data_source/train_images/
+/data_source/models/

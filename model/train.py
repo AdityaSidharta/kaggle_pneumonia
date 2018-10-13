@@ -2,6 +2,7 @@ from tqdm import tqdm_notebook as tqdm
 from model.loss import LossRecorder, calc_loss, record_loss
 from model.validation import validate_model
 from utils.common import get_batch_info
+from utils.logger import logger
 
 
 def train_step(optimizer, loss):
@@ -11,6 +12,31 @@ def train_step(optimizer, loss):
 
 
 def fit_model(
+    model,
+    n_epoch,
+    dev_dataloader,
+    optimizer,
+    criterion,
+    loss_fn,
+    metric_fn,
+    val_dataloader=None,
+):
+    n_dev_obs, dev_batch_size, dev_batch_per_epoch = get_batch_info(dev_dataloader)
+    for idx_epoch in tqdm(range(n_epoch), total=n_epoch):
+        model = model.train()
+        t = tqdm(enumerate(dev_dataloader), total=dev_batch_per_epoch)
+        for idx_batch, data in t:
+            loss = loss_fn(model, criterion, data)
+            train_step(optimizer, loss)
+        train_metric = validate_model(model, metric_fn, dev_dataloader)
+        print("train_loss : {}".format(train_metric))
+        if val_dataloader is not None:
+            val_metric = validate_model(model, metric_fn, val_dataloader)
+            print("val_loss : {}".format(val_metric))
+    return model
+
+
+def fit_model_full(
     model,
     n_epoch,
     dev_dataloader,
