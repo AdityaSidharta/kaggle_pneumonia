@@ -8,6 +8,11 @@ from torchvision.transforms import ToTensor, Resize, Compose, ToPILImage, Graysc
 from utils.transform import normalize_bb
 
 
+class LabelDataset(Dataset):
+    def __init__(self, train_path, device):
+        self.train_path = train_path
+
+
 class Single_Pneumonia_Dataset_Test(Dataset):
     def __init__(self, dcm_path, device):
         self.dcm_path = dcm_path

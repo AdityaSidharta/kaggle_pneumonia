@@ -24,15 +24,29 @@ def fit_model(
     n_dev_obs, dev_batch_size, dev_batch_per_epoch = get_batch_info(dev_dataloader)
     for idx_epoch in tqdm(range(n_epoch), total=n_epoch):
         model = model.train()
+        loss_recorder = LossRecorder(n_epoch, dev_batch_per_epoch)
+        metric_recorder = LossRecorder(n_epoch, dev_batch_per_epoch)
         t = tqdm(enumerate(dev_dataloader), total=dev_batch_per_epoch)
         for idx_batch, data in t:
             loss = loss_fn(model, criterion, data)
+            metric = metric_fn(model, data)
             train_step(optimizer, loss)
-        train_metric = validate_model(model, metric_fn, dev_dataloader)
-        print("train_loss : {}".format(train_metric))
+            smooth_loss = loss_recorder.record_train_loss(loss)
+            smooth_metric = loss_recorder.record_train_loss(metric)
+            t.set_postfix({"loss": smooth_loss, "metric": smooth_metric})
+        train_loss, train_metric = (
+            loss_recorder.get_epoch_mean(),
+            metric_recorder.get_epoch_mean(),
+        )
         if val_dataloader is not None:
-            val_metric = validate_model(model, metric_fn, val_dataloader)
-            print("val_loss : {}".format(val_metric))
+            val_loss, val_metric = validate_model(
+                model, criterion, loss_fn, metric_fn, val_dataloader
+            )
+            print(
+                "train_loss : {}, val_loss : {}, train_metric : {}, val_metric : {}".format(
+                    train_loss, val_loss, train_metric, val_metric
+                )
+            )
     return model
 
 

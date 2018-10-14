@@ -12,7 +12,7 @@ def lr_plot(lr_finder_cb, loss_rec_cb):
     sns.lineplot(x=lr_finder_cb.lr_schedule, y=loss_rec_cb.smooth_train_loss)
 
 
-def lr_find(model, dataloader, criterion, min_lr=1e-8, max_lr=10.):
+def lr_find(model, dataloader, criterion, min_lr=1e-8, max_lr=10.0):
     clone_model = copy.deepcopy(model)
     optimizer = optim.SGD(clone_model.parameters(), lr=min_lr)
     n_epoch = 1

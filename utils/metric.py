@@ -54,10 +54,10 @@ def jaccard(box_a, box_b):
 
 
 def class_metric(pred_label, target_label):
-    TP = torch.sum((pred_label >= 0.5) & (target_label == 1.))
-    FP = torch.sum((pred_label >= 0.5) & (target_label == 0.))
-    TN = torch.sum((pred_label < 0.5) & (target_label == 0.))
-    FN = torch.sum((pred_label < 0.5) & (target_label == 1.))
+    TP = torch.sum((pred_label >= 0.5) & (target_label == 1.0))
+    FP = torch.sum((pred_label >= 0.5) & (target_label == 0.0))
+    TN = torch.sum((pred_label < 0.5) & (target_label == 0.0))
+    FN = torch.sum((pred_label < 0.5) & (target_label == 1.0))
     acc = (TP + TN) / (TP + FP + TN + FN)
     prec = (TP) / (TP + FP)
     rec = (TP) / (TP + FN)

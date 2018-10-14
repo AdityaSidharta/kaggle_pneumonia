@@ -26,7 +26,7 @@ def predict_model_full(model, test_dataloader):
         prediction = F.sigmoid(model(img))
         prediction_array = prediction.data.cpu().numpy()
         target, x_min, y_min, width, height = [prediction_array[:, i] for i in range(5)]
-        img_h, img_w = 1024., 1024.
+        img_h, img_w = 1024.0, 1024.0
         x_min, y_min, width, height = denormalize_bb(
             img_w, img_h, x_min, y_min, width, height
         )

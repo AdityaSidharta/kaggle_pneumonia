@@ -30,7 +30,7 @@ class LossRecorder(CallBacks):
         if return_loss:
             return self.smooth_loss
 
-    def record_val_loss(self, new_loss, return_loss=False):
+    def record_val_loss(self, new_loss, return_loss=True):
         self.val_loss.append(new_loss)
         if return_loss:
             return new_loss
@@ -49,6 +49,10 @@ class LossRecorder(CallBacks):
             sns.lineplot(x=range(n_epoch), y=self.val_loss)
         else:
             sns.lineplot(x=range(n_epoch), y=self.epoch_train_loss)
+
+    def get_epoch_mean(self):
+        epoch_mean = np.mean(self.train_loss[-self.n_batch_per_epoch :])
+        return epoch_mean
 
     def on_epoch_end(self, epoch_idx):
         epoch_mean = np.mean(self.train_loss[-self.n_batch_per_epoch :])

@@ -17,8 +17,8 @@ class LabelBoundBoxCriterion(nn.Module):
     def forward(self, pred, target):
         pred_label, target_label = pred[:, 0], target[:, 0]
         pred_bb, target_bb = pred[:, 1:], target[:, 1:]
-        pos_pred_bb = pred_bb[target_label == 1.]
-        pos_target_bb = target_bb[target_label == 1.]
+        pos_pred_bb = pred_bb[target_label == 1.0]
+        pos_target_bb = target_bb[target_label == 1.0]
 
         loss_label = F.binary_cross_entropy_with_logits(pred_label, target_label)
         if pos_target_bb.shape[0] > 0:

@@ -37,6 +37,7 @@ class Header(nn.Module):
         x = self.model(x)
         return x
 
+
 class Res50BBHead(Header):
     def __init__(self, n_hidden_list, dropout):
         input_tensor = 2048
@@ -44,6 +45,7 @@ class Res50BBHead(Header):
         super(Res50BBHead, self).__init__(
             input_tensor, output_tensor, n_hidden_list, dropout
         )
+
 
 class Res50ClassHead(Header):
     def __init__(self, n_hidden_list, dropout):
