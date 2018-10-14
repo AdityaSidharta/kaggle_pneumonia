@@ -1,5 +1,5 @@
-from itertools import tee
 import math
+from itertools import tee
 
 
 def to_list(x):

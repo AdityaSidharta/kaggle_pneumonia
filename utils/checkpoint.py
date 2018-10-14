@@ -1,25 +1,21 @@
-import shutil
+import datetime
 import os
-import torch
-from utils.envs import model_cp_path
 
-# TODO not sure whether working correctly
-def save_checkpoint(
-    idx, model, optimizer, is_best=False, cp_fname="cp", md_fname="best"
-):
-    full_cp_fname = "{}_{}_model.pth".format(idx, cp_fname)
-    full_cp_optim_fname = "{}_{}_optim.pth".format(idx, cp_fname)
-    full_md_fname = "{}_model.pth".format(md_fname)
-    full_md_optim_fname = "{}_optim.pth".format(md_fname)
-    cp_path = os.path.join(model_cp_path, full_cp_fname)
-    cp_optim_path = os.path.join(model_cp_path, full_cp_optim_fname)
-    md_path = os.path.join(model_cp_path, full_md_fname)
-    md_optim_path = os.path.join(model_cp_path, full_md_optim_fname)
-    torch.save(model.state_dict(), cp_path)
-    torch.save(optimizer.state_dict(), cp_optim_path)
-    if is_best:
-        torch.save(model.state_dict(), md_path)
-        torch.save(optimizer.state_dict(), md_optim_path)
+import torch
+
+from utils.envs import model_cp_path
+from utils.callback import CallBacks
+
+
+def save_checkpoint(model, optimizer, fname=None):
+    if fname is None:
+        fname = str(datetime.datetime.now())
+    model_filename = "{}_model.pth".format(fname)
+    optim_filename = "{}_optim.pth".format(fname)
+    model_filepath = os.path.join(model_cp_path, model_filename)
+    optim_filepath = os.path.join(model_cp_path, optim_filename)
+    torch.save(model.state_dict(), model_filepath)
+    torch.save(optimizer.state_dict(), optim_filepath)
 
 
 def load_cp_model(model, checkpoint_path):
@@ -30,3 +26,21 @@ def load_cp_model(model, checkpoint_path):
 def load_cp_optim(optimizer, checkpoint_path):
     state_dict = torch.load(checkpoint_path)
     optimizer.load_state_dict(state_dict)
+
+
+class CheckpointSaver(CallBacks):
+    def __init__(self, model_fn):
+        self.model_fn = model_fn
+
+    def on_epoch_end(
+        self,
+        epoch_idx,
+        model,
+        optimizer,
+        train_loss,
+        train_metric,
+        val_loss=None,
+        val_metric=None,
+    ):
+        model_filename = "{}_{}".format(self.model_fn, epoch_idx)
+        save_checkpoint(model, optimizer, model_filename)

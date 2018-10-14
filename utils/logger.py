@@ -1,9 +1,10 @@
 import logging
+
 import torch.nn.functional as F
 
 from utils.envs import logger_repo
 
-
+# TODO fix logger
 def setup_logger(name: str, log_path: str) -> logging.Logger:
     """Logger utility for logging messages
 

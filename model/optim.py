@@ -1,8 +1,9 @@
 import numpy as np
 import seaborn as sns
+
 from utils.callback import CallBacks
 
-
+# TODO update this page with the new Callbacks system
 class OptimCallBacks(CallBacks):
     def __init__(self, optimizer):
         self.optimizer = optimizer

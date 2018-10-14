@@ -45,6 +45,7 @@ class Res50BBHead(Header):
         super(Res50BBHead, self).__init__(
             input_tensor, output_tensor, n_hidden_list, dropout
         )
+        self.model = nn.Sequential(self.model, nn.Sigmoid())
 
 
 class Res50ClassHead(Header):

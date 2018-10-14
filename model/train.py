@@ -1,8 +1,8 @@
 from tqdm import tqdm_notebook as tqdm
-from model.loss import LossRecorder, calc_loss, record_loss
+
 from model.validation import validate_model
+from utils.checkpoint import save_checkpoint
 from utils.common import get_batch_info
-from utils.logger import logger
 
 
 def train_step(optimizer, loss):
@@ -11,6 +11,7 @@ def train_step(optimizer, loss):
     optimizer.step()
 
 
+# TODO make the one with callbacks
 def fit_model(
     model,
     n_epoch,
@@ -20,93 +21,25 @@ def fit_model(
     loss_fn,
     metric_fn,
     val_dataloader=None,
+    checkpoint=False,
+    model_fn="pytorch",
 ):
     n_dev_obs, dev_batch_size, dev_batch_per_epoch = get_batch_info(dev_dataloader)
     for idx_epoch in tqdm(range(n_epoch), total=n_epoch):
-        model = model.train()
-        loss_recorder = LossRecorder(n_epoch, dev_batch_per_epoch)
-        metric_recorder = LossRecorder(n_epoch, dev_batch_per_epoch)
         t = tqdm(enumerate(dev_dataloader), total=dev_batch_per_epoch)
         for idx_batch, data in t:
+            model = model.train()
             loss = loss_fn(model, criterion, data)
-            metric = metric_fn(model, data)
             train_step(optimizer, loss)
-            smooth_loss = loss_recorder.record_train_loss(loss)
-            smooth_metric = loss_recorder.record_train_loss(metric)
-            t.set_postfix({"loss": smooth_loss, "metric": smooth_metric})
-        train_loss, train_metric = (
-            loss_recorder.get_epoch_mean(),
-            metric_recorder.get_epoch_mean(),
-        )
+            model = model.eval()
+            metric = metric_fn(model, data)
+            t.set_postfix({"loss": loss.item(), "metric": metric.item()})
         if val_dataloader is not None:
             val_loss, val_metric = validate_model(
                 model, criterion, loss_fn, metric_fn, val_dataloader
             )
-            print(
-                "train_loss : {}, val_loss : {}, train_metric : {}, val_metric : {}".format(
-                    train_loss, val_loss, train_metric, val_metric
-                )
-            )
+            print(" val_loss : {}, val_metric : {}".format(val_loss, val_metric))
+        if checkpoint:
+            model_filename = "{}_{}".format(model_fn, idx_epoch)
+            save_checkpoint(model, optimizer, model_filename)
     return model
-
-
-def fit_model_full(
-    model,
-    n_epoch,
-    dev_dataloader,
-    optimizer,
-    criterion,
-    callbacks=[],
-    val_dataloader=None,
-):
-    n_dev_obs, dev_batch_size, dev_batch_per_epoch = get_batch_info(dev_dataloader)
-    total_lossr, label_lossr, bb_lossr = (
-        LossRecorder(n_epoch, dev_batch_per_epoch),
-        LossRecorder(n_epoch, dev_batch_per_epoch),
-        LossRecorder(n_epoch, dev_batch_per_epoch),
-    )
-    lossr_list = [total_lossr, label_lossr, bb_lossr]
-    callbacks.extend(lossr_list)
-    for cb in callbacks:
-        cb.on_train_begin()
-
-    for idx_epoch in tqdm(range(n_epoch), total=n_epoch):
-
-        model = model.train()
-
-        for cb in callbacks:
-            cb.on_epoch_begin(idx_epoch)
-
-        t = tqdm(enumerate(dev_dataloader), total=dev_batch_per_epoch)
-        for idx_batch, data in t:
-            for cb in callbacks:
-                cb.on_batch_begin(idx_batch)
-
-            loss, label_loss, bb_loss = calc_loss(model, criterion, data)
-            train_step(optimizer, loss)
-            smooth_loss, smooth_label_loss, smooth_bb_loss = record_loss(
-                lossr_list, [loss.item(), label_loss.item(), bb_loss.item()], train=True
-            )
-            t.set_postfix(
-                {
-                    "loss": smooth_loss,
-                    "label_loss": smooth_label_loss,
-                    "bb_loss": smooth_bb_loss,
-                }
-            )
-
-            for cb in callbacks:
-                cb.on_batch_end(idx_batch)
-        if val_dataloader is not None:
-            val_loss, val_loss_label, val_loss_bb = validate_model(
-                model, criterion, val_dataloader
-            )
-            record_loss(lossr_list, [val_loss, val_loss_label, val_loss_bb])
-
-        for cb in callbacks:
-            cb.on_epoch_end(idx_epoch)
-
-    for cb in callbacks:
-        cb.on_train_end()
-
-    return model, callbacks

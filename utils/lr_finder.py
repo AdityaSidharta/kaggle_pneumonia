@@ -3,8 +3,8 @@ import copy
 import seaborn as sns
 from torch import optim as optim
 
+from dev.train import fit_model_full
 from model.optim import LR_Finder
-from model.train import fit_model_full
 from utils.common import get_batch_info
 
 
