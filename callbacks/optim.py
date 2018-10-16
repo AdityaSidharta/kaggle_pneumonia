@@ -1,7 +1,7 @@
 import numpy as np
 import seaborn as sns
 
-from utils.callback import CallBacks
+from callbacks.callback import CallBacks
 
 
 # TODO update this page with the new Callbacks system

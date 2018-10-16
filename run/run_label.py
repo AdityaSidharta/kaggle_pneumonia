@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from model.arch.header import Res50ClassHead
 from model.arch.respneunet import ResPneuNet
 from model.dataset import LabelDataset
-from model.optim import CLR
+from callbacks.optim import CLR
 from model.test import predict_model
 from model.train import fit_model
 from utils.common import get_batch_info
@@ -72,7 +72,7 @@ def main():
     )
     criterion = nn.BCEWithLogitsLoss().to(device)
     n_obs, batch_size, n_batch_per_epoch = get_batch_info(dev_dataloader)
-    clr = CLR(optimizer, n_epoch, n_batch_per_epoch, 0.1, 1., 0.95, 0.85, 2)
+    clr = CLR(n_epoch, n_batch_per_epoch, 0.1, 1., 0.95, 0.85, 2)
     callbacks = [clr]
 
     model = fit_model(

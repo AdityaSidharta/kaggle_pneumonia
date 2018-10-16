@@ -2,7 +2,7 @@ import numpy as np
 import seaborn as sns
 
 from utils.logger import logger
-from utils.callback import CallBacks
+from callbacks.callback import CallBacks
 
 
 class LossRecorder(CallBacks):

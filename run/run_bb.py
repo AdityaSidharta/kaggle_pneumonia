@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from model.arch.header import Res50BBHead
 from model.arch.respneunet import ResPneuNet
 from model.dataset import BBDataset
-from model.optim import CLR
+from callbacks.optim import CLR
 from model.test import predict_model
 from model.train import fit_model
 from utils.checkpoint import save_checkpoint
@@ -28,7 +28,7 @@ def loss_fn(model, criterion, data):
 def metric_fn(model, data):
     img, target = data
     prediction = model(img)
-    metric = F.mse_loss(prediction, target)
+    metric = F.l1_loss(prediction, target)
     return metric
 
 
@@ -71,10 +71,10 @@ def main():
         weight_decay=0,
         amsgrad=False,
     )
-    criterion = nn.MSELoss().to(device)
+    criterion = nn.L1Loss().to(device)
 
     n_obs, batch_size, n_batch_per_epoch = get_batch_info(dev_dataloader)
-    clr = CLR(optimizer, n_epoch, n_batch_per_epoch, 0.1, 1., 0.95, 0.85, 2)
+    clr = CLR(n_epoch, n_batch_per_epoch, 0.1, 1., 0.95, 0.85, 2)
     callbacks = [clr]
 
     model = fit_model(

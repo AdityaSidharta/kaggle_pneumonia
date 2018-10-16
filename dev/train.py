@@ -1,7 +1,7 @@
 from tqdm import tqdm_notebook as tqdm
 
 from dev.loss import calc_loss, record_loss
-from model.loss import LossRecorder
+from callbacks.loss import LossRecorder
 from model.train import train_step
 from model.validation import validate_model
 from utils.common import get_batch_info

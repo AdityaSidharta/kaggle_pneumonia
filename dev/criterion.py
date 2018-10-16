@@ -3,11 +3,6 @@ from torch import nn as nn
 from torch.nn import functional as F
 
 
-class LabelCriterion(nn.Module):
-    def forward(self, pred, target):
-        return F.binary_cross_entropy_with_logits(pred, target)
-
-
 class LabelBoundBoxCriterion(nn.Module):
     def __init__(self, alpha):
         super().__init__()
