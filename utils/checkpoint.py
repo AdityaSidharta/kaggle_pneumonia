@@ -29,18 +29,14 @@ def load_cp_optim(optimizer, checkpoint_path):
 
 
 class CheckpointSaver(CallBacks):
-    def __init__(self, model_fn):
+    def __init__(self, model_fn, is_epoch_cp=True):
         self.model_fn = model_fn
+        self.is_epoch_cp = is_epoch_cp
 
-    def on_epoch_end(
-        self,
-        epoch_idx,
-        model,
-        optimizer,
-        train_loss,
-        train_metric,
-        val_loss=None,
-        val_metric=None,
-    ):
+    def on_epoch_end(self, epoch_idx, model, optimizer, val_loss=None, val_metric=None):
         model_filename = "{}_{}".format(self.model_fn, epoch_idx)
+        save_checkpoint(model, optimizer, model_filename)
+
+    def on_train_end(self, model, optimizer):
+        model_filename = "{}_final", format(self.model_fn)
         save_checkpoint(model, optimizer, model_filename)

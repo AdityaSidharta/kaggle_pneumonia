@@ -3,11 +3,9 @@ import seaborn as sns
 
 from utils.callback import CallBacks
 
+
 # TODO update this page with the new Callbacks system
 class OptimCallBacks(CallBacks):
-    def __init__(self, optimizer):
-        self.optimizer = optimizer
-
     @staticmethod
     def set_lr(optimizer, lr):
         for param_group in optimizer.param_groups:
@@ -27,10 +25,7 @@ class OptimCallBacks(CallBacks):
 
 
 class LR_Finder(OptimCallBacks):
-    def __init__(
-        self, optimizer, n_epoch, n_batch_per_epoch, min_lr, max_lr, linear=False
-    ):
-        super().__init__(optimizer)
+    def __init__(self, n_epoch, n_batch_per_epoch, min_lr, max_lr, linear=False):
         self.n_epoch = n_epoch
         self.n_batch_per_epoch = n_batch_per_epoch
         self.min_lr = min_lr
@@ -48,7 +43,7 @@ class LR_Finder(OptimCallBacks):
                 np.log10(self.min_lr), np.log10(self.max_lr), self.total_batch
             ).tolist()
 
-    def on_batch_begin(self, batch_idx):
+    def on_batch_begin(self, batch_idx, model, optimizer):
         lr = self.lr_schedule[batch_idx]
         self.set_lr(self.optimizer, lr)
 
@@ -56,7 +51,6 @@ class LR_Finder(OptimCallBacks):
 class CLR(OptimCallBacks):
     def __init__(
         self,
-        optimizer,
         n_epoch,
         n_batch_per_epoch,
         min_lr,
@@ -68,7 +62,6 @@ class CLR(OptimCallBacks):
         scale_ratio=0.8,
         leftover_ratio=0.5,
     ):
-        super().__init__(optimizer)
         self.n_epoch = n_epoch
         self.n_batch_per_epoch = n_batch_per_epoch
         self.min_lr = min_lr
@@ -128,8 +121,8 @@ class CLR(OptimCallBacks):
     def plot_mom(self):
         sns.lineplot(x=np.arange(self.total_batch), y=np.array(self.mom_schedule))
 
-    def on_batch_begin(self, batch_idx):
+    def on_batch_begin(self, batch_idx, model, optimizer):
         lr = self.lr_schedule[batch_idx]
         mom = self.mom_schedule[batch_idx]
-        self.set_lr(self.optimizer, lr)
-        self.set_mom(self.optimizer, mom)
+        self.set_lr(optimizer, lr)
+        self.set_mom(optimizer, mom)
