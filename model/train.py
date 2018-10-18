@@ -1,5 +1,5 @@
 from tqdm import tqdm_notebook as tqdm
-
+import torch
 from model.validation import validate_model
 from utils.checkpoint import save_checkpoint
 from utils.common import get_batch_info
@@ -30,8 +30,9 @@ def fit_model(
             model = model.train()
             loss = loss_fn(model, criterion, data)
             train_step(optimizer, loss)
-            model = model.eval()
-            metric = metric_fn(model, data)
+            with torch.no_grad():
+                model = model.eval()
+                metric = metric_fn(model, data)
             t.set_postfix({"loss": loss.item(), "metric": metric.item()})
         if val_dataloader is not None:
             val_loss, val_metric = validate_model(
@@ -65,13 +66,14 @@ def fit_model_full(
             model = model.train()
             loss = loss_fn(model, criterion, data)
             train_step(optimizer, loss)
-            model = model.eval()
-            metric = metric_fn(model, data)
-            t.set_postfix({"loss": loss.item(), "metric": metric.item()})
-            [
-                cb.on_batch_end(idx_batch, model, optimizer, loss.item(), metric.item())
-                for cb in callbacks
-            ]
+            with torch.no_grad():
+                model = model.eval()
+                metric = metric_fn(model, data)
+                t.set_postfix({"loss": loss.item(), "metric": metric.item()})
+                [
+                    cb.on_batch_end(idx_batch, model, optimizer, loss.item(), metric.item())
+                    for cb in callbacks
+                ]
         if val_dataloader is not None:
             val_loss, val_metric = validate_model(
                 model, criterion, loss_fn, metric_fn, val_dataloader

@@ -4,7 +4,6 @@ import seaborn as sns
 from callbacks.callback import CallBacks
 
 
-# TODO update this page with the new Callbacks system
 class OptimCallBacks(CallBacks):
     @staticmethod
     def set_lr(optimizer, lr):
